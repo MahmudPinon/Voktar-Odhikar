@@ -1,12 +1,12 @@
 import { Body, Controller, Get, Param, Query, Post, Put,Delete, ValidationPipe, UsePipes, UseInterceptors, UploadedFile, ParseIntPipe, Res } from '@nestjs/common';
-import { AppService } from './distributor.service';
-import { DistributorInfo, DistributorProductList } from './distributor.dto';
+import { distributorService } from './distributor.service';
+import { DisInfo, DistributorInfo, DistributorProductList } from './distributor.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MulterError, diskStorage } from "multer";
 
 @Controller("distributor")
-export class AppController {
-  constructor(private readonly appService: AppService) {}
+export class distributorController {
+  constructor(private readonly distributorService: distributorService) {}
 
   // @Get('/searchbyid/:disid')
   // searchUserBy(@Param('disid') userId:string): DistributorInfo {
@@ -146,6 +146,12 @@ export class AppController {
       totProduct:count
     }
     return prod;
+  }
+
+  @Post('adddis')
+  @UsePipes(new ValidationPipe())
+  addDis(@Body() disinfo:DisInfo){
+    return this.distributorService.addDis(disinfo);
   }
 
 

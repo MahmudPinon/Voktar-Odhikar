@@ -1,4 +1,4 @@
-import { Contains, IsBoolean, IsString, Matches, MinLength, IsArray } from 'class-validator'
+import { Contains, IsBoolean, IsString, Matches, MinLength, IsArray, IsEmail } from 'class-validator'
 
 export class DistributorInfo{
     disId:string;
@@ -32,4 +32,15 @@ export class DistributorLiscense{
     @IsBoolean()
     LisceneApproval:boolean;
 }
+
+
+export class DisInfo{
+    @IsString()
+    name: string;
+    @IsEmail() @IsString()
+    email: string;
+    @IsString()
+    password: string;
+}
+
 

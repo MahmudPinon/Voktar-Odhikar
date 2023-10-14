@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
-import { AppController, } from './distributor.controller';
-import { AppService } from './distributor.service';
+import { distributorController, } from './distributor.controller';
+import { distributorService } from './distributor.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DistributorEntity } from './distributor.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([DistributorEntity])],
-  controllers: [AppController,],
-  providers: [AppService],
+  controllers: [distributorController,],
+  providers: [distributorService],
 })
 export class DisModule {}
