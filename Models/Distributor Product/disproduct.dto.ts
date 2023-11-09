@@ -57,3 +57,9 @@ export class updateProductPrice{
     @IsInt()
     distributor_price:number;
 }
+
+export class DeleteProduct{
+    @IsNotEmpty({ message: 'Please enter a valid Product Name' }) 
+    @IsString()
+    product_name:string;
+}

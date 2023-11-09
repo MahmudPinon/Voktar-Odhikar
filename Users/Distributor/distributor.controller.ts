@@ -13,7 +13,7 @@ import session from 'express-session';
 import { RedListDTO } from 'src/Models/Red Lists/redlist.dto';
 import { RedListService } from 'src/Models/Red Lists/redlist.service';
 import { Router } from 'express';
-import { DisAddProductDto, DisProductDTO, updateProductPrice, updateProductQuantity } from 'src/Models/Distributor Product/disproduct.dto';
+import { DeleteProduct, DisAddProductDto, DisProductDTO, updateProductPrice, updateProductQuantity } from 'src/Models/Distributor Product/disproduct.dto';
 import { DisProductEntity } from 'src/Models/Distributor Product/disproduct.entity';
 import { DisProductService } from 'src/Models/Distributor Product/disproduct.service';
 import { productAlreadyExist, productNotaAddedExist } from 'src/Models/Distributor Product/disproduct.error';
@@ -27,6 +27,7 @@ import { RequestProEntity } from 'src/Models/Request Amount/requestpro.entity';
 import { ReportandNoticeDisDTO, ReportandNoticePostDisDTO } from 'src/Models/Report and Notice/reportandnotice.dto';
 import { ReportandNoticeService } from 'src/Models/Report and Notice/reportandnotice.service';
 import { ReportandNoticeEntity } from 'src/Models/Report and Notice/reportandnotice.entity';
+import { DeleteResult } from 'typeorm';
 
 
 @Controller("users/distributor")
@@ -611,6 +612,41 @@ async reportAdmin(@Body((new ValidationPipe()))notice:ReportandNoticePostDisDTO,
     if (error) {
       return { success: false, message: "An unexpected error occurred." };
     }
+  }
+}
+
+@Delete("deletestockproduct")
+@UsePipes(new ValidationPipe())
+@UseGuards(SessionGuardDis)
+async deleteStockProduct(@Body() product: DeleteProduct, @Session() session): Promise<DisProductEntity | { message: string }|DeleteResult>{
+  const user = session.user;
+  
+  if(user.role==="Distributor")
+  {
+    try {
+      
+      const productver = await this.distributorservice.deleteProduct(product,session)
+      console.log(productver)
+      if(productver){
+        
+        return  productver;
+      }
+      else{
+        return { message: 'Product not updated in inventory'};
+      }
+    }
+    catch(error)
+    {
+      if (error instanceof productNotaAddedExist){
+        return { message: 'No product found in inventory with such name' };
+      }
+    }
+
+  }
+  else
+  {
+    return { message: 'You are a Unauthorized User' };
+
   }
 }
 

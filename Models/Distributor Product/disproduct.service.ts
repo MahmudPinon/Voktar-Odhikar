@@ -1,7 +1,7 @@
 import { Injectable, Session } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DisProductEntity } from "./disproduct.entity";
-import { Repository } from "typeorm";
+import { DeleteResult, Repository } from "typeorm";
 import { DisProductDTO } from "./disproduct.dto";
 import session from "express-session";
 import { productAlreadyExist, productNotaAddedExist, productUpdateFailed } from "./disproduct.error";
@@ -64,6 +64,31 @@ export class DisProductService{
           },
         });
         return updatedproduct;
+      }
+      else{
+        throw new productUpdateFailed()
+      }
+    }
+    catch(error){
+      console.log("err: ",error)
+    }
+    
+    
+  }
+  async deleteProduct(product,@Session() session):Promise<DisProductEntity|null|DeleteResult>
+  {
+    let pro =  await this.productRepo.findOne({where: {
+        product_name: product.product_name,
+        profile:session.user
+      },
+      });
+    if(!pro){
+      throw new productNotaAddedExist()
+    }
+    try{
+      const res = await this.productRepo.delete(pro.product_id);
+      if(res){
+        return pro;
       }
       else{
         throw new productUpdateFailed()
