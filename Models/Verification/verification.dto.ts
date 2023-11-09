@@ -44,3 +44,16 @@ export class VerificationIndustryandDistributorDTO{
   
   id: number;
   }
+
+  export class VerificationDisDTO{
+
+
+      @Matches(/^AUTH-\d{12}$/, {
+          message: 'License number must start with "AUTH-" followed by 12 digits',
+        })
+      @IsString()
+      @IsNotEmpty({ message: 'Please Provide the Valid License Number' }) 
+      license_number:string;
+      
+      file_location_name:string;
+    }

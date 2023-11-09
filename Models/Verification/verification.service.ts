@@ -2,7 +2,7 @@ import { ConflictException, Injectable } from '@nestjs/common';
 import { FindOneOptions, Repository } from 'typeorm';
 import { VerificationEntity } from './verification.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { VerificationDTO, VerificationIndustryandDistributorDTO } from './verification.dto';
+import { VerificationDTO, VerificationDisDTO, VerificationIndustryandDistributorDTO } from './verification.dto';
 import { ProfileService } from '../All Profile/profile.service';
 import { LicenseNumberExistsError, AuthorizationError, ProfileMismatchError,ProfileAlreadyVerifiedError,NotanyVerificationRequests,ProfiledoesnotExistsError, } from './verification.errors';
 
@@ -173,4 +173,49 @@ export class VerificationService {
       return null;
     }
   }
+
+  async addVerificationDis(verificationInfo: VerificationDisDTO,id:number): Promise<VerificationEntity> {
+    try {
+      // Check for duplicate entry
+      const existingVerificationYes = await this.verificationRepo.findOne({
+        where: { license_number: verificationInfo.license_number,verified: 'Yes' },
+      });
+      if (existingVerificationYes) {
+        throw new ProfileAlreadyVerifiedError();
+      }
+  
+      const existingVerification = await this.verificationRepo.findOne({
+        where: { license_number: verificationInfo.license_number },
+      });
+  
+
+      if (existingVerification) {
+        throw new LicenseNumberExistsError();
+      }
+  
+      const profile = await this.profileService.getProfileByUserIdAndLicenseNumberDis(
+        id,
+        verificationInfo.license_number
+      );
+        console.log("Pro: ",profile);
+      if (!profile) {
+        throw new ProfileMismatchError();
+      }
+  
+      const newVerification = new VerificationEntity();
+      newVerification.license_number = verificationInfo.license_number;
+      newVerification.file_location_name = verificationInfo.file_location_name;
+      newVerification.verified = "No";
+      newVerification.all_profile = profile;
+  
+      const res = await this.verificationRepo.save(newVerification);
+      return res;
+    } catch (error) {
+      console.error('Error adding verification:', error);
+  
+      throw error;
+    }
+  }
+
+  
 }

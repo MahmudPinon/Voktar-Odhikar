@@ -39,7 +39,21 @@ export class DisAddProductDto{
 }
 
 export class updateProductQuantity{
+    @IsNotEmpty({ message: 'Please enter a valid Product Name' }) 
+    @IsString()
+    product_name:string;
+
     @IsNotEmpty({ message: 'Please Provide the available quantity' }) 
     @IsInt()
     product_quantity:number;
+}
+
+export class updateProductPrice{
+    @IsNotEmpty({ message: 'Please enter a valid Product Name' }) 
+    @IsString()
+    product_name:string;
+
+    @IsNotEmpty({ message: 'Please Provide the available quantity' }) 
+    @IsInt()
+    distributor_price:number;
 }

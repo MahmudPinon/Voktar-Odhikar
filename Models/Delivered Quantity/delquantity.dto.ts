@@ -20,3 +20,13 @@ delivered_quantity:number;
 
 
 }
+
+export class quantityDelbyDisDTO{
+    @IsNotEmpty({ message: 'Please enter a valid Product Name' }) 
+    @IsString()
+    product_name:string;
+
+    @IsNotEmpty({ message: 'Please Provide the available quantity' }) 
+    @IsInt()
+    delivered_quantity:number;
+}

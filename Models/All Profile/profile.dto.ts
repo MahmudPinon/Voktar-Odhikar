@@ -125,6 +125,8 @@ export class UpdatePhoneDTO{
 
 }
 
+
+
 export class UpdatepasswordDTO{
 
   @IsNotEmpty({ message: 'Please enter a valid password' })
@@ -134,3 +136,39 @@ export class UpdatepasswordDTO{
   password:string;
 
 }
+
+export class UpdateDisDTO{
+
+  @Matches(/^[A-Za-z\s]+$/, { message: 'Name should only contain characters and spaces' })
+  @IsNotEmpty({message: 'Please enter a valid name'}) 
+  @IsString()
+  name:string;
+  
+  
+  @IsNotEmpty({ message: 'Please Provide the Address' }) 
+  @IsString()
+  address:string;
+    
+  @Matches(/^(0[01789]|1[01789])[7893564]\d{8}$/, { message: 'Invalid phone number format' })
+  @IsNotEmpty({ message: 'PhoneNumber cannot be empty' })
+  @IsString()
+  @IsNotEmpty() 
+  phone_number:string;
+  
+  
+  @IsNotEmpty({ message: 'Please enter a valid password' })
+  @IsString()
+  @Length(8, undefined, { message: 'Password must be at least 8 characters long' })
+  @Matches(/^(?=.*[0-9].*[0-9])(?=.*[!@#$%^&*].*[!@#$%^&*])/, { message: 'Password must include at least 2 special characters and 2 numbers' })
+  password:string;
+  
+  }
+
+  export class UpdateRegionDisDTO{
+
+    @IsNotEmpty({ message: 'Please enter a valid region' })
+    @IsString()
+    @IsIn(validDistricts, { message: 'Region must be one of the 8 districts in Bangladesh' })
+    region: string;
+  
+  }

@@ -1,22 +1,32 @@
 import { Body, Controller, Get, Param, Query, Post, Put,Delete, ValidationPipe, UsePipes, UseInterceptors, UploadedFile, ParseIntPipe, Res, Session, NotFoundException, UnauthorizedException, UnprocessableEntityException, UseGuards, Patch } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MulterError, diskStorage } from "multer";
-import { Login, ProfileDTO } from 'src/Models/All Profile/profile.dto';
+import { Login, ProfileDTO, UpdateDisDTO, UpdateNameDTO, UpdatePhoneDTO, UpdateRegionDisDTO, UpdatepasswordDTO } from 'src/Models/All Profile/profile.dto';
 import { ProfileEntity } from 'src/Models/All Profile/profile.entity';
 import { ProfileService } from 'src/Models/All Profile/profile.service';
-import { VerificationDTO } from 'src/Models/Verification/verification.dto';
+import { VerificationDTO, VerificationDisDTO } from 'src/Models/Verification/verification.dto';
 import { NotanyRedlistedIndustry } from 'src/Models/Red Lists/redlist.error';
 import { VerificationService } from 'src/Models/Verification/verification.service';
-import { ProfiledoesnotExistsError } from 'src/Models/Verification/verification.errors';
+import { LicenseNumberExistsError, ProfileAlreadyVerifiedError, ProfileMismatchError, ProfiledoesnotExistsError } from 'src/Models/Verification/verification.errors';
 import { SessionGuardDis } from './SessionDisGaurd.gaurd';
 import session from 'express-session';
 import { RedListDTO } from 'src/Models/Red Lists/redlist.dto';
 import { RedListService } from 'src/Models/Red Lists/redlist.service';
 import { Router } from 'express';
-import { DisAddProductDto, DisProductDTO, updateProductQuantity } from 'src/Models/Distributor Product/disproduct.dto';
+import { DisAddProductDto, DisProductDTO, updateProductPrice, updateProductQuantity } from 'src/Models/Distributor Product/disproduct.dto';
 import { DisProductEntity } from 'src/Models/Distributor Product/disproduct.entity';
 import { DisProductService } from 'src/Models/Distributor Product/disproduct.service';
 import { productAlreadyExist, productNotaAddedExist } from 'src/Models/Distributor Product/disproduct.error';
+import { quantityDelbyDisDTO } from 'src/Models/Delivered Quantity/delquantity.dto';
+import { DelquantityEntity } from 'src/Models/Delivered Quantity/delquantity.entity';
+import { DelquantityService } from 'src/Models/Delivered Quantity/delquantity.service';
+import { VerificationEntity } from 'src/Models/Verification/verification.entity';
+import { RequestProDisDTO } from 'src/Models/Request Amount/requestpro.dto';
+import { RequestProService } from 'src/Models/Request Amount/reqproduct.service';
+import { RequestProEntity } from 'src/Models/Request Amount/requestpro.entity';
+import { ReportandNoticeDisDTO, ReportandNoticePostDisDTO } from 'src/Models/Report and Notice/reportandnotice.dto';
+import { ReportandNoticeService } from 'src/Models/Report and Notice/reportandnotice.service';
+import { ReportandNoticeEntity } from 'src/Models/Report and Notice/reportandnotice.entity';
 
 
 @Controller("users/distributor")
@@ -25,147 +35,11 @@ export class DistributorController {
     private readonly verificationservice: VerificationService,
     private readonly redlistservice: RedListService,
     private readonly distributorservice: DisProductService,
+    private readonly delquantityservice: DelquantityService,
+    private readonly requestproservice: RequestProService,
+    private readonly reportandnoticeservice: ReportandNoticeService
     ) {}
 
-  // @Get('/searchbyid/:disid')
-  // searchUserBy(@Param('disid') userId:string): DistributorInfo {
-  //   let dist:DistributorInfo = {
-  //     disId:userId,
-  //     disShopName:"Joyco",
-  //     username:"Joy",
-  //     password:"1234",
-  //     address:"kuratoli"
-  //   };
-  //   return dist;
-  // }
-
-  // @Get('/searchbystore/:store')
-  // searchByStore(@Param('store') shopName:string): DistributorInfo {
-  //   let dist:DistributorInfo = {
-  //     disId:"D1011",
-  //     disShopName:shopName,
-  //     username:"Joy",
-  //     password:"1234",
-  //     address:"kuratoli"
-  //   };
-  //   return dist;
-  // }
-
-
-  // @Get('/searchdisissuer')
-  // searchDisIssuer(@Query() Issuer:DistributorIssuer): DistributorIssuer {
-  //   let disIs:DistributorIssuer = {
-  //     disFirstName:Issuer.disFirstName,
-  //     disLastName:Issuer.disLastName,
-  //     disIssuerNid:"19912123123"
-  //   }
-  //   return disIs;
-  // }
-
-
-  // @Post('/createdis')
-  // createDistributor(@Body() mybody:DistributorInfo): DistributorInfo {
-  //   let dist:DistributorInfo = {
-  //     disId:"d1011",
-  //     disShopName:mybody.disShopName,
-  //     username:mybody.username,
-  //     password:mybody.password,
-  //     address:mybody.address
-  //   };
-  //   return dist;
-  // }
-
-  // @Put('/updateshopname')
-  // updateName(@Body() mybody:DistributorInfo): DistributorInfo {
-  //   let dist:DistributorInfo = {
-  //     disId:"d1011",
-  //     disName:mybody.disName,
-  //     username:"khan",
-  //     password:"1234",
-  //     region:"khilkhet",
-  //     email:"a@mail.com"
-  //   };
-  //   return dist;
-  // }
-
-  // @Delete('/deleteproduct')
-  // deleteMrp(@Body() mybody:DistributorProduct): DistributorProduct {
-  //   let disProduct:DistributorProduct={
-  //     disSellMrp:0,
-  //     disSellUnit:0,
-  //     disUnitName:"kg",
-  //     disProductName:mybody.disProductName
-  //   }
-  //   return disProduct;
-  // }
-
-  // @Post('/currproducttotal')
-  // currProductTotal(@Body() mybody:DistributorProductTotal): DistributorProductTotal {
-  //   let prodtot:DistributorProductTotal = {
-  //     disProductTotalUnit:2,
-  //     disProductTotalPrice:211,
-  //     disProductName:mybody.disProductName
-  //   };
-  //   return prodtot;
-  // }
-  // @Post('discreateaccount')
-  // @UsePipes(new ValidationPipe())
-  // createDistributorAccount(@Body() mybody:DistributorInfo): DistributorInfo{
-  //   let dist:DistributorInfo = {
-  //     disId:"D-20200-1",
-  //     disName:mybody.disName,
-  //     username:mybody.username,
-  //     password:mybody.password,
-  //     region:mybody.region,
-  //     email:mybody.email
-  //   };
-  //   return dist;
-  // }
-
-  // @Get('totalProduct/:tot')
-  // getTotal(@Param('tot', ParseIntPipe) totalPro: number) {
-  //     return totalPro;
-  // }
-
-  // @Post('uploadLiscence')
-  // @UseInterceptors(FileInterceptor('file',
-  // { fileFilter: (req, file, cb) => {
-  //   if(file.originalname.match(/^.*\.(pdf)$/))
-  //     cb(null, true);
-  //   else {
-  //   cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'pdf'), false);
-  //   }
-  // },
-  // limits: { fileSize: 3000000 },
-  //   storage:diskStorage({
-  //   destination: './uploads',
-  //   filename: function (req, file, cb) {
-  //     cb(null,Date.now()+file.originalname)
-  //   },
-  // })
-  // }))
-  // uploadFile(@UploadedFile() file: Express.Multer.File) {
-  //   console.log(file);
-  // }
-
-  // @Get('/showLiscence/:name')
-  // getImages(@Param('name') name, @Res() res) {
-  //   res.sendFile(name,{ root: './uploads' })  
-  // }
-
-  // @Post('productList')
-  // @UsePipes(new ValidationPipe())
-  // updateProductList(@Body() product:DistributorProductList): DistributorProductList{
-  //   let count:number = 0;
-  //   for(const a in product.disProducts){
-  //     count += 1;
-  //   }
-  //   let prod:DistributorProductList = {
-  //     disProducts:product.disProducts,
-  //     totProduct:count
-  //   }
-  //   return prod;
-  // }
   
   @Post('login')
   @UsePipes(new ValidationPipe())
@@ -204,7 +78,7 @@ export class DistributorController {
 
   @Get('checkDisVerification')
   @UseGuards(SessionGuardDis)
-  async checkDisVerification(@Session() session): Promise<VerificationDTO| { message: string }> { 
+  async checkDisVerification(@Session() session): Promise<VerificationEntity| { message: string }> { 
     const user = session.user;
 
     if(user.role==="Distributor")
@@ -216,7 +90,7 @@ export class DistributorController {
         
         if(verified){
           
-          return { message: 'Your license is verified'};
+          return verified;
         }
         else{
           return { message: 'Your license is not verified'};
@@ -251,7 +125,7 @@ export class DistributorController {
         
         if(redlisted){
           
-          return { message: 'You are red listed'};
+          return redlisted;
         }
         else{
           return { message: 'You are not red listed'};
@@ -292,7 +166,7 @@ export class DistributorController {
         console.log(productver)
         if(productver){
           
-          return { message: 'Product Added to inventory'};
+          return productver;
         }
         else{
           return { message: 'Product not Added to inventory'};
@@ -354,18 +228,18 @@ export class DistributorController {
   @Patch("updateproductquantity")
   @UsePipes(new ValidationPipe())
   @UseGuards(SessionGuardDis)
-  async updateProductQuantity(@Body() product: DisAddProductDto, @Session() session): Promise<DisProductEntity | { message: string }>{
+  async updateProductQuantity(@Body() product: updateProductQuantity, @Session() session): Promise<DisProductEntity | { message: string }>{
     const user = session.user;
     
     if(user.role==="Distributor")
     {
       try {
         
-        const productver = await this.distributorservice.updateProductQuantity(product,session)
+        const productver = await this.distributorservice.updateProduct(product,session)
         console.log(productver)
         if(productver){
           
-          return { message: 'Product updated in inventory'};
+          return  productver;
         }
         else{
           return { message: 'Product not updated in inventory'};
@@ -385,6 +259,363 @@ export class DistributorController {
   
     }
   }
+
+  @Patch("updateproductprice")
+  @UsePipes(new ValidationPipe())
+  @UseGuards(SessionGuardDis)
+  async updateProductPrice(@Body() product: updateProductPrice, @Session() session): Promise<DisProductEntity | { message: string }>{
+    const user = session.user;
+    
+    if(user.role==="Distributor")
+    {
+      try {
+        
+        const productver = await this.distributorservice.updateProduct(product,session)
+        //console.log(productver)
+        if(productver){
+          
+          return productver;
+        }
+        else{
+          return { message: 'Product not updated in inventory'};
+        }
+      }
+      catch(error)
+      {
+        if (error instanceof productNotaAddedExist){
+          return { message: 'No product found in inventory with such name' };
+        }
+      }
+  
+    }
+    else
+    {
+      return { message: 'You are a Unauthorized User' };
+  
+    }
+  }
+
+  @Post("delivaryproduct")
+  @UsePipes(new ValidationPipe())
+  @UseGuards(SessionGuardDis)
+  async delivaryProduct(@Body() product: quantityDelbyDisDTO, @Session() session): Promise<DisProductEntity | { message: string }>{
+    const user = session.user;
+    if(user.role==="Distributor")
+    {
+      try {
+        
+        const productver = await this.delquantityservice.addDeliveredQuantityDis(product,session)
+        //console.log(productver)
+        if(productver){
+          
+          return productver;
+        }
+        else{
+          return { message: 'Product not delivered'};
+        }
+      }
+      catch(error)
+      {
+        if (error instanceof productNotaAddedExist){
+          return { message: 'No product found in inventory with such name' };
+        }
+      }
+  
+    }
+    else
+    {
+      return { message: 'You are a Unauthorized User' };
+  
+    }
+  }
+
+  @Put('/updatedisprofile')
+  @UseGuards(SessionGuardDis)
+  async updatedisprofile(@Body((new ValidationPipe()))ProfileInfo:UpdateDisDTO, @Session() session): Promise<ProfileEntity | { message: string } | { success: boolean }>{
+  const user = session.user;
+  try {
+    if (user.role!=="Distributor") {
+      throw new UnauthorizedException("User is not authorized");
+    } else {
+      const user = session.user;
+      const id = user.uid;
+      const updateadmininfo = await this.profileservice.updateDisInfo(ProfileInfo, id);
+      return updateadmininfo;
+    }
+  } catch (error) {
+    console.error(error);
+
+    if (error instanceof ProfiledoesnotExistsError) {
+      return { success: false, message: error.message };
+    } else {
+      return { success: false, message: "An unexpected error occurred." };
+    }
+  }
+
+}
+
+@Patch('updatedisname')
+@UseGuards(SessionGuardDis)
+async updateDisName(@Body((new ValidationPipe()))name:UpdateNameDTO, @Session() session): Promise<ProfileEntity | { message: string } | { success: boolean }>{
+  const user = session.user;
+
+  try {
+    if (user.role!=="Distributor") {
+      throw new UnauthorizedException("User is not authorized");
+    } else {
+      const user = session.user;
+      const id = user.uid;
+      const profile = await this.profileservice.updatename(name, id);
+      return profile;
+    }
+  } catch (error) {
+    console.error(error);
+
+    if (error) {
+      return { success: false, message: "An unexpected error occurred." };
+    }
+  }
+}
+
+
+
+
+@Patch('/updatedisaddress')
+@UseGuards(SessionGuardDis)
+async updateDisAddress(@Body((new ValidationPipe()))address, @Session() session): Promise<ProfileEntity | { message: string } | { success: boolean }>{
+  const user = session.user;
+
+  try {
+    if (user.role!=="Distributor") {
+      throw new UnauthorizedException("User is not authorized");
+    } else {
+      const user = session.user;
+      const id = user.uid;
+      const profile = await this.profileservice.updateaddress(address, id);
+      return profile;
+    }
+  } catch (error) {
+    console.error(error);
+
+    if (error) {
+      return { success: false, message: "An unexpected error occurred." };
+    }
+  }
+}
+
+@Patch('/updatedisphonenumber')
+@UseGuards(SessionGuardDis)
+async updateDisPhoneNumber(@Body((new ValidationPipe()))phonenumber:UpdatePhoneDTO, @Session() session): Promise<ProfileEntity | { message: string } | { success: boolean }>{
+  const user = session.user;
+
+  try {
+    if (user.role!=="Distributor") {
+      throw new UnauthorizedException("User is not authorized");
+    } else {
+      const user = session.user;
+      const id = user.uid;
+      const profile = await this.profileservice.updatephonenumber(phonenumber, id);
+      return profile;
+    }
+  } catch (error) {
+    console.error(error);
+
+    if (error) {
+      return { success: false, message: "An unexpected error occurred." };
+    }
+  }
+}
+
+
+
+@Patch('/updatedispassword')
+@UseGuards(SessionGuardDis)
+async updateDisPassword(@Body((new ValidationPipe()))password:UpdatepasswordDTO, @Session() session): Promise<ProfileEntity | { message: string } | { success: boolean }>{
+  const user = session.user;
+
+  try {
+    if (!session) {
+      throw new UnauthorizedException("User is not authorized");
+    } else {
+      const user = session.user;
+      const id = user.uid;
+      const profile = await this.profileservice.updatepassword(password, id);
+      return profile;
+    }
+  } catch (error) {
+    console.error(error);
+
+    if (error) {
+      return { success: false, message: "An unexpected error occurred." };
+    }
+  }
+}
+
+@Post('/uplodlicensedis')
+  @UseGuards(SessionGuardDis)
+  @UsePipes(new ValidationPipe())
+  @UseInterceptors(FileInterceptor('file_location_name', {
+    fileFilter: (req, file, cb) => {
+      if (file.originalname.match(/^.*\.(jpg|webp|png|jpeg|pdf)$/)) {
+        cb(null, true);
+      } else {
+        cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'image'), false);
+      }
+    },
+    limits: { fileSize: 30000000000 },
+    storage: diskStorage({
+      destination: './upload',
+      filename: function (req, file, cb) {
+        cb(null, Date.now() + file.originalname);
+      },
+    }),
+  }))
+  async addVerification(
+    @Body() verificationInfo: VerificationDisDTO,
+    @UploadedFile() myfile: Express.Multer.File,
+    @Session() session
+  ) {
+    verificationInfo.file_location_name = myfile.filename;
+  
+    const user = session.user;
+  
+    if (user) {
+      // Check if the user is an Admin
+      if (user.role === 'Distributor') {
+        // Pass the user ID from the session to verificationInfo
+  
+        try {
+          const result = await this.verificationservice.addVerificationDis(verificationInfo,session.user.id);
+          return { success: true, message: 'License Uploaded Successfully' };
+        } catch (error) {
+          if (error instanceof ProfileAlreadyVerifiedError) {
+            return { success: false, message: 'Profile is already verified' };
+          } else if (error instanceof LicenseNumberExistsError) {
+            return { success: false, message: 'License number already exists.' };
+          } else if (error instanceof ProfileMismatchError) {
+            return { success: false, message: 'User ID and license number do not match with the profile.' };
+          } else {
+            return { success: false, message: 'An error occurred while adding the verification.' };
+          }
+        }
+        
+      } else {
+        return { success: false, message: 'Access denied. You are not authorized to perform this action.' };
+      }
+    } else {
+      return { success: false, message: 'User is not authenticated.' };
+    }
+  }
+
+  @Get("viewiindustrylist")
+  @UsePipes(new ValidationPipe())
+  @UseGuards(SessionGuardDis)
+  async viewIndustryList(@Session() session): Promise<ProfileEntity[] | { message: string }>{
+    const user = session.user;
+    
+    if(user.role==="Distributor")
+    {
+      try {
+        
+        const products = await this.profileservice.ViewallIndustrynameDis(session)
+        console.log(products)
+        if(products){
+          
+          return products;
+        }
+        else{
+          return { message: 'No product in inventory'};
+        }
+      }
+      catch(error)
+      {
+        if (error instanceof productNotaAddedExist){
+          return { message: 'No product added' };
+        }
+      }
+  
+    }
+    else
+    {
+      return { message: 'You are a Unauthorized User' };
+  
+    }
+  }
+
+  @Patch('/updatedisregion')
+  @UseGuards(SessionGuardDis)
+  async updateDisRegion(@Body((new ValidationPipe()))region:UpdateRegionDisDTO, @Session() session): Promise<ProfileEntity | { message: string } | { success: boolean }>{
+    const user = session.user;
+
+  try {
+    if (user.role!=="Distributor") {
+      throw new UnauthorizedException("User is not authorized");
+    } else {
+      const user = session.user;
+      const id = user.uid;
+      const profile = await this.profileservice.UpdateRegionDis(region, id);
+      return profile;
+    }
+  } catch (error) {
+    console.error(error);
+
+    if (error) {
+      return { success: false, message: "An unexpected error occurred." };
+    }
+  }
+}
+
+@Post('requestproduct')
+@UseGuards(SessionGuardDis)
+async requestProduct(@Body((new ValidationPipe()))requestProduct:RequestProDisDTO, @Session() session): Promise<RequestProEntity | { message: string } | { success: boolean }>{
+  const user = session.user;
+
+  try {
+    if (user.role!=="Distributor") {
+      throw new UnauthorizedException("User is not authorized");
+    } else {
+      const profile = await this.requestproservice.addrequestAmountDis(requestProduct,session);
+      return profile;
+    }
+  } catch (error) {
+    console.error(error);
+
+    if (error) {
+      return { success: false, message: "An unexpected error occurred." };
+    }
+  }
+}
+
+@Post('reportadmin')
+@UseGuards(SessionGuardDis)
+async reportAdmin(@Body((new ValidationPipe()))notice:ReportandNoticePostDisDTO, @Session() session): Promise<ReportandNoticeEntity | { message: string } | { success: boolean } | {error:string}>{
+  const user = session.user;
+
+  try {
+    if (user.role!=="Distributor") {
+      throw new UnauthorizedException("User is not authorized");
+    } else {
+      const sendnotice:ReportandNoticeDisDTO={
+        name:user.name,
+        reporterrole:user.role,
+        receiver:notice.receiver,
+        reportornotice:notice.reportornotice,
+        type:notice.type
+      }
+      const profile = await this.reportandnoticeservice.noticeandreportDis(sendnotice,session.user.uid)
+      return profile;
+    }
+  } catch (error) {
+    console.error(error);
+
+    if (error) {
+      return { success: false, message: "An unexpected error occurred." };
+    }
+  }
+}
+
+
+
 
   
 

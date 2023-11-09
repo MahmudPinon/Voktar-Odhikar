@@ -26,3 +26,22 @@ delivered_quantity:number;
 
 
 }
+
+export class RequestProDisDTO{
+
+    @Matches(/^[A-Za-z\s]+$/, { message: 'Name should only contain characters and spaces' })
+    @IsNotEmpty({message: 'Please enter a valid Industry Name'}) 
+    @IsString()
+    industry_name:string;
+    
+    @IsNotEmpty({ message: 'Please enter a valid Product Name' }) 
+    @IsString()
+    product_name:string;
+    
+    @IsNotEmpty({ message: 'Please Provide the available quantity' }) 
+    @IsInt()
+    requested_quantity:number;
+    
+    
+}
+

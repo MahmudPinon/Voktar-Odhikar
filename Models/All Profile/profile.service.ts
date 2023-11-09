@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Session } from '@nestjs/common';
 import { Not, Repository } from 'typeorm';
 import { ProfileEntity } from './profile.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ProfileDTO, UpdateAdminDTO, UpdateNameDTO, UpdatePhoneDTO, UpdatepasswordDTO } from './profile.dto';
+import { ProfileDTO, UpdateAdminDTO, UpdateDisDTO, UpdateNameDTO, UpdatePhoneDTO, UpdateRegionDisDTO, UpdatepasswordDTO } from './profile.dto';
 import * as bcrypt from 'bcrypt';
 import { NoDistributorFound, NoIndustryFound, PhonenumberExistsforUpdate } from './profile.error';
 
@@ -26,9 +26,9 @@ export class ProfileService {
   }
   
 
-async getProfileById(uid:number):Promise<ProfileEntity>
+async getProfileById(id:number):Promise<ProfileEntity>
 {
-  const profile = await this.profileRepo.findOne({ where: { uid } });
+  const profile = await this.profileRepo.findOne({ where: { uid : id } });
   return profile;
 }
 
@@ -238,7 +238,77 @@ async updatephonenumber(phone_number:UpdatePhoneDTO,id:number): Promise<ProfileE
     return this.profileRepo.save(disInfo);
   }
 
+  async updateDisInfo(ProfileInfo:UpdateDisDTO,id:number):Promise<ProfileEntity>
+{
+  const password = ProfileInfo.password;
+  const salt = await bcrypt.genSalt();
+  const hashedPassword = await bcrypt.hash(password, salt);
+  ProfileInfo.password = hashedPassword;
+  console.log(id)
+  const seephonenumberunique = await this.profileRepo.findOne({
+    where: {phone_number: ProfileInfo.phone_number,
+            uid: Not(id),},
+  });
+  console.log(seephonenumberunique)
+  if (seephonenumberunique) {
+    throw new PhonenumberExistsforUpdate();
+  }
+  
 
+  const res=await  this.profileRepo.update(id,ProfileInfo);
+  return this.profileRepo.findOne({where: {
+      uid: id,
+    },
+  })
+
+}
+
+async getProfileByUserIdAndLicenseNumberDis(userId: number, licenseNumber: string): Promise<ProfileEntity | null> {
+  const profile = await this.profileRepo.findOne({where: {
+        uid: userId, license_number:licenseNumber
+      },
+    })
+
+  if(profile){
+    return profile
+  }
+  return  null;
+}
+
+async ViewallIndustrynameDis(@Session() session)
+{
+
+  const profiles = await this.profileRepo.find({
+    where: {
+      role: 'Industry',region: session.user.region
+    },
+    select: ['name', 'email', 'phone_number', 'region'],
+  });
+  if(profiles.length===0)
+  {
+    throw new NoIndustryFound();
+  }
+  else
+  {
+    return profiles;
+  }
+
+  // const names = profiles.map(profile => profile.name);
+  // return names
+
+}
+
+async UpdateRegionDis(region:UpdateRegionDisDTO,id:number): Promise<ProfileEntity | null>
+{
+
+
+  
+    const res=await  this.profileRepo.update(id,region);
+    return this.profileRepo.findOne({where: {
+        uid: id,
+      },
+    })
+}
 
 
 

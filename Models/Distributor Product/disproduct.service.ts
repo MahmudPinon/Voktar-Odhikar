@@ -45,26 +45,34 @@ export class DisProductService{
     return res;
   }
 
-  async updateProductQuantity(product,@Session() session):Promise<DisProductEntity|null>
+  async updateProduct(product,@Session() session):Promise<DisProductEntity|null>
   {
     let pro =  await this.productRepo.findOne({where: {
         product_name: product.product_name,
+        profile:session.user
       },
       });
     if(!pro){
       throw new productNotaAddedExist()
     }
-    const res = await this.productRepo.update(pro.product_id,product);
-    if(res){
-      const updatedproduct = await this.productRepo.findOne({where: {
-          product_name: product.name,
-        },
-      });
-      return updatedproduct;
+    try{
+      const res = await this.productRepo.update(pro.product_id,product);
+      console.log("seres: ",res)
+      if(res){
+        const updatedproduct = await this.productRepo.findOne({where: {
+            product_name: product.name,
+          },
+        });
+        return updatedproduct;
+      }
+      else{
+        throw new productUpdateFailed()
+      }
     }
-    else{
-      throw new productUpdateFailed()
+    catch(error){
+      console.log("err: ",error)
     }
+    
     
   }
 
