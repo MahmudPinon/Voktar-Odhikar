@@ -24,3 +24,27 @@ industry_price:number;
 
 
 }
+
+
+export class addProductDTO{
+    
+    @IsNotEmpty({ message: 'Please enter a valid Product Name' }) 
+    @IsString()
+    product_name:string;
+    
+    @IsNotEmpty({ message: 'Please Provide the available quantity' }) 
+    @IsInt()
+    product_quantity:number;
+    
+    
+    @IsNotEmpty({ message: 'Please Provide the available quantity' }) 
+    @IsInt()
+    industry_price:number;
+       
+}
+
+export class DeleteProductDTO{
+    @IsNotEmpty({ message: 'Please enter a valid Product ID' }) 
+    @IsInt()
+    product_id: number;
+}

@@ -45,3 +45,9 @@ export class RequestProDisDTO{
     
 }
 
+export class delquantityDTO{
+    @IsNotEmpty({ message: 'Please provide the reason'})
+    @IsInt()
+    reason:number;
+}
+

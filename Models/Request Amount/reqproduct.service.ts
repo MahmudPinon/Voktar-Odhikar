@@ -4,6 +4,7 @@ import { RequestProEntity } from "./requestpro.entity";
 import { Repository } from "typeorm";
 import { RequestProDTO, RequestProDisDTO } from "./requestpro.dto";
 import { ProfileEntity } from "../All Profile/profile.entity";
+import { NoRequestAvailable } from "./reqproduct.error";
 
 @Injectable()
 export class RequestProService{
@@ -56,6 +57,31 @@ export class RequestProService{
       console.log(error)
     }
    }
+
+   async viewProRequestIND(name: string) {
+
+    // Fetch data from the table where industry_name matches the provided name
+    const res = await this.productRepo.find({
+      where: { industry_name: name },
+      select: [
+        'request_id',
+        'industry_name',
+        'product_name',
+        'distributor_name',
+        'requested_quantity',
+        'delivered_quantity',
+      ],
+    });
+
+  if(res.length === 0)
+  {
+    throw new NoRequestAvailable();
+  }
+  else
+  {
+    return res;
+  }   
+}
     
 
 }

@@ -172,3 +172,34 @@ export class UpdateDisDTO{
     region: string;
   
   }
+
+  export class UpdateIndustryDTO{
+
+    @Matches(/^[A-Za-z\s]+$/, { message: 'Name should only contain characters and spaces' })
+    @IsNotEmpty({message: 'Please enter a valid name'}) 
+    @IsString()
+    name:string;
+    
+    
+    @IsNotEmpty({ message: 'Please Provide the Address' }) 
+    @IsString()
+    address:string;
+      
+    @Matches(/^(0[01789]|1[01789])[7893564]\d{8}$/, { message: 'Invalid phone number format' })
+    @IsNotEmpty({ message: 'PhoneNumber cannot be empty' })
+    @IsString()
+    @IsNotEmpty() 
+    phone_number:string;
+    
+    }
+  
+  
+    export class UpdateIndsutryPhoneDTO{
+  
+      @Matches(/^(0[01789]|1[01789])[7893564]\d{8}$/, { message: 'Invalid phone number format' })
+      @IsNotEmpty({ message: 'PhoneNumber cannot be empty' })
+      @IsString()
+      @IsNotEmpty() 
+      phone_number:string;
+    
+    }
