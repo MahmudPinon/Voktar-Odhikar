@@ -2,9 +2,10 @@ import { Injectable, Session } from '@nestjs/common';
 import { Not, Repository } from 'typeorm';
 import { ProfileEntity } from './profile.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ProfileDTO, UpdateAdminDTO, UpdateDisDTO, UpdateIndsutryPhoneDTO, UpdateIndustryDTO, UpdateNameDTO, UpdatePhoneDTO, UpdateRegionDisDTO, UpdatepasswordDTO } from './profile.dto';
+import { ProfileDTO, UpdateAdminDTO, UpdateDisDTO, UpdateIndsutryPhoneDTO, UpdateIndustryDTO, UpdateNameDTO, UpdatePhoneDTO, UpdateRegionDisDTO, UpdateUserDTO, UpdateUserPhoneDTO, UpdatepasswordDTO } from './profile.dto';
 import * as bcrypt from 'bcrypt';
 import { NoDistributorFound, NoIndustryFound, PhonenumberExistsforUpdate } from './profile.error';
+import { ProfiledoesnotExistsError } from '../Verification/verification.errors';
 
 @Injectable()
 export class ProfileService {
@@ -468,6 +469,169 @@ async getProfileByUserIdAndLicenseNumberIND(userId: number, licenseNumber: strin
   }
   return  null;
 }
+
+
+
+
+
+
+
+//user
+
+async addUserU(userInfo:ProfileDTO):Promise<ProfileEntity>
+{
+  const { license_number, phone_number, email } = userInfo;
+
+  if (!(await this.isProfileUnique(license_number, phone_number, email))) {
+    throw new Error('Profile with the same license number, phone, or email already exists.');
+  }
+  const password = userInfo.password;
+  const salt = await bcrypt.genSalt();
+  const hashedPassword = await bcrypt.hash(password, salt);
+  userInfo.password = hashedPassword;
+  //const res = await this.profileRepo.save(adminInfo);
+  //return this.profileRepo.find();
+  return this.profileRepo.save(userInfo);
+}
+async viewprofileU(uid: number): Promise<ProfileEntity | null> {
+  const profile = await this.profileRepo.findOne({ where: { uid } });
+
+  return profile || null;
+}
+
+
+async updatephonenumberU(phone_number:UpdateUserPhoneDTO,id:number): Promise<ProfileEntity | null>
+{
+
+  const seeunique = await this.profileRepo.find({
+    where: {phone_number: phone_number.phone_number,
+            uid: Not(id),},
+  });
+
+  if (seeunique.length!==0) {
+    throw new PhonenumberExistsforUpdate();
+  }
+  else
+  {
+    const res=await  this.profileRepo.update(id,phone_number);
+    return this.profileRepo.findOne({where: {
+        uid: id,
+      },
+    })
+  }
+}
+
+async updatenameU(name:UpdateNameDTO,id:number): Promise<ProfileEntity | null>
+{
+  const res=await  this.profileRepo.update(id,name);
+  return this.profileRepo.findOne({where: {
+      uid: id,
+    },
+  })
+}
+
+async updateaddressU(address,id:number): Promise<ProfileEntity | null>
+{
+  const res=await  this.profileRepo.update(id,address);
+  return this.profileRepo.findOne({where: {
+      uid: id,
+    },
+  })
+}
+
+async updateUserInfoU(ProfileInfo:UpdateUserDTO,id:number):Promise<ProfileEntity>
+{ 
+  const seephonenumberunique = await this.profileRepo.find({
+    where: {phone_number: ProfileInfo.phone_number,
+            uid: Not(id),},
+  });
+
+  if (seephonenumberunique.length !== 0) {
+    throw new PhonenumberExistsforUpdate();
+  }
+  
+
+  const res=await  this.profileRepo.update(id,ProfileInfo);
+  return this.profileRepo.findOne({where: {
+      uid: id,
+    },
+  })
+
+}
+
+async updatepasswordU(pass:UpdatepasswordDTO,id:number): Promise<ProfileEntity | null>
+  {
+    const password = pass.password;
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(password, salt);
+    pass.password=hashedPassword;
+    const res=await  this.profileRepo.update(id,pass);
+    return this.profileRepo.findOne({where: {
+        uid: id,
+      },
+    })
+  }
+
+  async deleteUserProfile(id: number): Promise<string> {
+    const existProfile = await this.profileRepo.findOne({
+      where: { uid: id }
+    });
+    if (!existProfile) {
+      throw new ProfiledoesnotExistsError();
+    } else {
+      const result = await this.profileRepo.delete({ uid: id });
+      return `User profile with ID ${id} has been removed.`;
+    }
+  }
+
+  async getAreaAdminsByRegion(userRegion: string): Promise<ProfileEntity[] | null> {
+    try {
+      const admins = await this.profileRepo.find({
+        where: { role: 'Admin', region: userRegion },
+      });
+
+      return admins;
+    } catch (error) {
+      throw new Error(`Error retrieving Area Admins for region ${userRegion}: ${error.message}`);
+    }
+  }
+  async getAreaDistributorsByRegion(userRegion: string): Promise<ProfileEntity[] | null> {
+    try {
+      const distributors = await this.profileRepo.find({
+        where: { role: 'Distributor', region: userRegion },
+      });
+
+      return distributors;
+    } catch (error) {
+      throw new Error(`Error retrieving Area Distributors for region ${userRegion}: ${error.message}`);
+    }
+  }
+
+  async getDistributorNameByRegion(region: string): Promise<string | null> {
+    try {
+      const distributor = await this.profileRepo.findOne({
+        where: { role: 'Distributor', region },
+      });
+
+      return distributor ? distributor.name : null;
+    } catch (error) {
+      throw new Error(`Error retrieving distributor for region ${region}: ${error.message}`);
+    }
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

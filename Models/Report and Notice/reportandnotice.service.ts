@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { ReportandNoticeEntity } from './reportandnotice.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ReportandNoticeDTO, ReportandNoticeDisDTO } from './reportandnotice.dto';
+import { ReportandNoticeDTO, ReportandNoticeDisDTO, ReportandNoticeUserDTO } from './reportandnotice.dto';
 import { ProfileEntity } from "../All Profile/profile.entity";
 import { ProfileService } from "../All Profile/profile.service";
 
@@ -84,6 +84,30 @@ export class ReportandNoticeService {
     }
 
   }
+
+
+  async noticeandreportUser(reportandnoticeInfo: ReportandNoticeUserDTO, id: number): Promise<ReportandNoticeEntity|{error:string}> {
+    const reportOrNotice = this.reportandnoticeRepo.create(reportandnoticeInfo);
+    const user = await this.profileService.getProfileById(id);
+    const existsindustryanduser = await this.profileService.getProfileByName({ name: reportandnoticeInfo.receiver });
+
+    if (!existsindustryanduser || existsindustryanduser.role !== "Admin") {
+      throw new Error('Admin with the specified name does not exist.');
+    }
+    else
+    {
+      reportOrNotice.name = user.name; 
+      reportOrNotice.reporterrole = user.role; 
+      const profileArray = [user];
+      reportOrNotice.all_profile = profileArray;
+    
+      const res = await this.reportandnoticeRepo.save(reportOrNotice);
+    
+      return res; 
+    }
+
+   }
+
 
   
 

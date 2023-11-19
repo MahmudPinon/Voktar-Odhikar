@@ -1,8 +1,8 @@
-import { Injectable, Session } from "@nestjs/common";
+import { Injectable, NotFoundException, Session } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DisProductEntity } from "./disproduct.entity";
 import { DeleteResult, Repository } from "typeorm";
-import { DisProductDTO } from "./disproduct.dto";
+import { DisProductDTO, GetProductsByDistributorDTO } from "./disproduct.dto";
 import session from "express-session";
 import { productAlreadyExist, productNotaAddedExist, productUpdateFailed } from "./disproduct.error";
 
@@ -101,6 +101,53 @@ export class DisProductService{
     
   }
 
+  
+  async getProductPrice(productName: string): Promise<number> {
+    const product = await this.productRepo.findOne({
+      where: { product_name: productName },
+    });
+
+    if (!product) {
+      throw new Error('Product not found');
+    }
+
+    return product.distributor_price;
+  }
+
+  async getDistributorProducts(distributorName: string): Promise<DisProductEntity[] | null> {
+    try {
+      const products = await this.productRepo.find({
+        where: { distributor_name: distributorName },
+      });
+      return products;
+    } catch (error) {
+      throw new Error(`Error retrieving products for distributor ${distributorName}: ${error.message}`);
+    }
+  }
+
+  async getProductsByDistributor(dto: GetProductsByDistributorDTO): Promise<DisProductEntity[] | null> {
+    try {
+      const { distributor_name } = dto;
+
+      const products = await this.productRepo.find({
+        where: { distributor_name },
+      });
+
+      return products;
+    } catch (error) {
+      throw new Error(`Error retrieving products for distributor ${dto.distributor_name}: ${error.message}`);
+    }
+  }
+  async getProductPriceById(productId): Promise<number> {
+    console.log(productId);
+    const product = await this.productRepo.findOne({ where: { product_id: productId.id }, });
+    if (!product) {
+      throw new NotFoundException(`Product with ID ${productId} not found`);
+    }
+  
+    return product.distributor_price;
+  }
+  
 
 
 }

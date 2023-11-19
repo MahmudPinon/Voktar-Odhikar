@@ -165,8 +165,32 @@ export class RedListService {
   }
   }
 
-
-
+  async redlisteindustryU():Promise<RedListEntity[]>{
+    const redlistdistributor = await this.redListRepo.find({
+      where: { role: "Industry"},
+    });
+    if(redlistdistributor.length === 0)
+  {
+    throw new NotanyRedlistedDributor();
+  }
+  else
+  {
+    return redlistdistributor;
+  }
+  }
+  async redlistedistributorU():Promise<RedListEntity[]>{
+    const redlistdistributor = await this.redListRepo.find({
+      where: { role: "Distributor"},
+    });
+    if(redlistdistributor.length === 0)
+  {
+    throw new NotanyRedlistedDributor();
+  }
+  else
+  {
+    return redlistdistributor;
+  }
+  }
 
 
 
