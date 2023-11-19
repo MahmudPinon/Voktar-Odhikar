@@ -619,12 +619,37 @@ async updatepasswordU(pass:UpdatepasswordDTO,id:number): Promise<ProfileEntity |
     }
   }
 
+  async ViewallDistributorNameU()
+  {
+  
+    const profiles = await this.profileRepo.find({
+      where: {
+        role: 'Distributor',
+      },
+      select: ['name', 'email', 'phone_number', 'region'],
+    });
+    
+    if(profiles.length===0)
+    {
+      throw new NoDistributorFound();
+    }
+    else
+    {
+      return profiles;
+    }
+  }
 
 
-
-
-
-
+  async UpdateRegionU(region:UpdateRegionDisDTO,id:number): Promise<ProfileEntity | null>
+  {
+ 
+    
+      const res=await  this.profileRepo.update(id,region);
+      return this.profileRepo.findOne({where: {
+          uid: id,
+        },
+      })
+  }
 
 
 

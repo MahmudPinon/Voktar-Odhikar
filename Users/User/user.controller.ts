@@ -3,7 +3,7 @@ import { ProfileService } from '../../Models/All Profile/profile.service';
 import { VerificationService } from '../../Models/Verification/verification.service';
 import { RedListService } from '../../Models/Red Lists/redlist.service';
 import { ReportandNoticeService } from '../../Models/Report and Notice/reportandnotice.service';
-import { Login, UpdateAdminDTO, UpdateIndsutryPhoneDTO, UpdateIndustryDTO, UpdateNameDTO, UpdatePhoneDTO, UpdateUserDTO, UpdateUserPhoneDTO, UpdatepasswordDTO } from "../../Models/All Profile/profile.dto";
+import { Login, UpdateAdminDTO, UpdateIndsutryPhoneDTO, UpdateIndustryDTO, UpdateNameDTO, UpdatePhoneDTO, UpdateRegionDisDTO, UpdateUserDTO, UpdateUserPhoneDTO, UpdatepasswordDTO } from "../../Models/All Profile/profile.dto";
 import { ProfileDTO} from '../../Models/All Profile/profile.dto';
 import { Request } from 'express';
 import { ReportandNoticeDTO, ReportandNoticeDisDTO, ReportandNoticePostDisDTO, ReportandNoticePostUserDTO, ReportandNoticeUserDTO} from '../../Models/Report and Notice/reportandnotice.dto';
@@ -392,7 +392,49 @@ async deleteUserProfile(@Session() session): Promise<{ message: string } | { suc
     }
   }
 
+  @Patch('updateregion')
+  @UseGuards(SessionGuard)
+  async updateDisRegion(@Body((new ValidationPipe()))region:UpdateRegionDisDTO, @Session() session): Promise<ProfileEntity | { message: string } | { success: boolean }>{
+    const user = session.user;
 
+  try {
+    if (user.role!=="User") {
+      throw new UnauthorizedException("User is not authorized");
+    } else {
+      const user = session.user;
+      const id = user.uid;
+      const profile = await this.profileservice.UpdateRegionU(region, id);
+      return profile;
+    }
+  } catch (error) {
+    console.error(error);
+
+    if (error) {
+      return { success: false, message: "An unexpected error occurred." };
+    }
+  }
+}
+
+  @Get('getalldistributor')
+  @UseGuards(SessionGuard)
+  async getalldistributorU(@Session() session): Promise<ProfileEntity[] | { message: string } | { success: boolean }>{
+    const user = session.user;
+    if (user) {
+      if (user.role === 'User') {
+        try {
+          const profiles = await this.profileservice.ViewallDistributorNameU();
+        
+          return profiles;
+        
+        } catch (error) {
+          if (error instanceof NoDistributorFound) {
+            return { success: false, message: 'There is no Distributor' };
+          }
+        }
+      }
+    }
+  }
+  
 
 
 
